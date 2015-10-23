@@ -1,0 +1,103 @@
+{%- extends 'bootstrap.html' %}
+{%- block nav %}{% endblock nav %}
+{%- block meta %}
+    <link href="/static/gcs_upload.css" rel="stylesheet">
+{%- endblock meta %}
+{%- block body %}
+<div class="panel panel-default">
+<div class="container">
+    <div class="panel-body col-xs-4">
+        <form method="post" action="https://storage.googleapis.com/{{ form_bucket }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <input type="hidden" id="key" name="key" value="">
+                <input type="hidden" name="GoogleAccessId" value="{{ form_access_id }}">
+                <input type="hidden" name="acl" value="bucket-owner-read">
+                <input type="hidden" name="success_action_redirect" value="{{ form_succes_redirect }}">
+                <input type="hidden" name="success_action_status" value="201">
+                <input type="hidden" name="x-goog-meta-user-id" value="{{ form_user_id }}">
+                <input type="hidden" name="policy" value="{{ form_policy }}">
+                <input type="hidden" name="signature" value="{{ form_signature }}">
+                <label>Direct GCS upload</label>
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <span class="btn btn-primary btn-file">
+                            Browse&hellip;<input type="file" id="file" name="file" class="form-control">
+                        </span>
+                    </span>
+                    <label for="file_name"></label>
+                    <input id="file_name" name="filename" type="text" class="form-control" readonly placeholder="Browse for a file">
+                </div>
+            </div>
+            {%- if form_folders %}
+            <div class="form-group">
+                <label for="folder">Bucket / folder</label>
+                <select id="folder" class="form-control">
+                    <option value="default"{% if form_folder|default('default') == 'default' %} selected{% endif %}>{{ form_bucket }}</option>
+                    {%- for each in form_folders %}
+                    <option value="{{ each }}"{% if form_folder|default('default') == each %} selected{% endif %}>{{ form_bucket }}/{{ each }}</option>
+                    {%- endfor %}
+                </select>
+            </div>
+            {%- endif %}
+            <div class="form-group">
+                <label for="submit">&nbsp;</label>
+                <input id="submit" type="submit" class="btn btn-primary pull-right" value="Upload">
+                <input type="button" value="Reset"  class="btn btn-primary pull-left"
+                       onclick="location.replace('{{ uri_for('gcs_upload', _full=True) }}');">
+            </div>
+        </form>
+        <div id="modal-box" class="modal fade in" role="dialog" data-modal-box="{{ modal_box|default('hide') }}">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header app-info">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">{{ title }} : OK</h4>
+                    </div>
+                    <div class="modal-body modal-warning">
+                        GCS filename : {{ bucket }}/{{ key }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{%- endblock body %}
+{%-  block script %}
+<script>
+// http://www.abeautifulsite.net/whipping-file-inputs-into-shape-with-bootstrap-3
+$(document).on('change', '.btn-file :file', function() {
+  var input = $(this),
+      numFiles = input.get(0).files ? input.get(0).files.length : 1,
+      label = input.val().replace(/\\/g, '/').replace(/.*\//, '');
+  input.trigger('fileselect', [numFiles, label]);
+});
+$(document).ready( function() {
+    $('.btn-file :file').on('fileselect', function (event, numFiles, label) {
+        var input = $(this).parents('.input-group').find(':text'),
+            log = numFiles > 1 ? numFiles + ' files selected' : label;
+        if (input.length) {
+            input.val(log);
+        } else {
+            if (log) alert(log);
+        }
+    });
+    // update GCS upload form
+    $('form').submit(function() {
+    // update key = folder + object name
+        var file_name = $('#file_name').val();
+        var folder = $('#folder').val();
+        if (folder != 'default') {
+            file_name = folder + '/' + file_name;1
+        }
+        $('#key').val(file_name);
+    });
+    // upload result
+    var $modal_box = $('#modal-box');
+    $modal_box.modal($modal_box.data('modal-box'));
+});
+</script>
+{%- endblock script %}

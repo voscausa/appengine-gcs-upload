@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="/lib/bootstrap.min.css" rel="stylesheet">
+    {%- block meta %}{#- meta block to add css #}{%- endblock meta %}
+    <title>{{ title }}</title>
+</head>
+<body>
+{%- block nav %}{%- include "bootstrap_nav.html" %}{%  endblock nav %}
+{%-  block body %}{#- app code  #} %}{%- endblock body %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="/lib/bootstrap.min.js"></script>
+{%-  block script %}{#- script block #}{%- endblock script %}
+</body>
+</html>
