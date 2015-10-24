@@ -11,7 +11,9 @@ import base64
 import logging
 
 logging.getLogger().setLevel(logging.DEBUG)
+# appengine default bucket has free quota
 default_bucket = app_identity.get_default_gcs_bucket_name()
+# these folders can be used in the upload
 bucket_folders = ['test', 'uploads']
 
 
@@ -26,6 +28,7 @@ def gcs_upload(acl='bucket-owner-read'):
     # GCS signed upload url expires
     expiration_dt = datetime.now() + timedelta(seconds=60)
 
+    # The security json policy document that describes what can and cannot be uploaded in the form
     policy_string = """
     {"expiration": "%s",
               "conditions": [
@@ -36,6 +39,7 @@ def gcs_upload(acl='bucket-owner-read'):
                   {"x-goog-meta-user-id": "%s"},
               ]}""" % (expiration_dt.replace(microsecond=0).isoformat() + 'Z', acl, success_redirect, user_id)
 
+    # sign the policy document
     policy = base64.b64encode(policy_string)
     _, signature_bytes = app_identity.sign_blob(policy)
     signature = base64.b64encode(signature_bytes)
